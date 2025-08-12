@@ -1,0 +1,6 @@
+@YetenekYonetimAPI_HostAddress = http://localhost:5170
+
+GET {{YetenekYonetimAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

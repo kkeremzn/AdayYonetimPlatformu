@@ -1,0 +1,28 @@
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb_container
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+  backend:
+    build:
+      context: ./YetenekYonetimAPI
+      dockerfile: Dockerfile
+    container_name: yetenekyonetimapi_container
+    ports:
+      - "5005:80"
+    depends_on:
+      - mongodb
+    env_file:
+      - ./.env
+    environment:
+      MongoDbSettings__ConnectionString: ${MONGODB_URI:-mongodb://mongodb:27017}
+      MongoDbSettings__DatabaseName: ${MONGODB_DBNAME:-YetenekYonetimDB}
+      JwtSettings__SecretKey: ${JwtSettings__SecretKey}
+      JwtSettings__Issuer: ${JwtSettings__Issuer:-YetenekYonetimAPI}
+      JwtSettings__Audience: ${JwtSettings__Audience:-YetenekYonetimAPI}
+volumes:
+  mongodb_data:
