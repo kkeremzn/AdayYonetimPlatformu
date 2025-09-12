@@ -22,7 +22,6 @@ namespace YetenekYonetimAPI.Services
 
         public async Task CreateAsync(Kullanici newKullanici)
         {
-            // Kullanıcının parolasını hash'le ve Sifre alanına ata
             newKullanici.Sifre = BCrypt.Net.BCrypt.HashPassword(newKullanici.Sifre);
             await _kullaniciCollection.InsertOneAsync(newKullanici);
         }
@@ -31,7 +30,9 @@ namespace YetenekYonetimAPI.Services
 
         public async Task<List<Kullanici>> GetAsync() =>
         await _kullaniciCollection.Find(_ => true).ToListAsync();
+        public async Task RemoveAsync(string id) =>
+            await _kullaniciCollection.DeleteOneAsync(x => x.Id == id);
 
-        // Diğer CRUD metotları (Create, Update, Delete) ileride eklenebilir.
+        
     }
 }

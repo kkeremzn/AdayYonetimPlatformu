@@ -13,13 +13,18 @@ namespace YetenekYonetimAPI.Models
         public string? KullaniciAdi { get; set; }
 
         [BsonElement("sifre")]
-        public string? Sifre { get; set; } // Şifreyi hash'leyerek saklayacağız
+        public string? Sifre { get; set; } 
 
         [BsonElement("rol")]
-        public string? Rol { get; set; } // "IKDirector" veya "IKUzman"
+        public string? Rol { get; set; } 
 
         [BsonElement("sirketId")]
         [BsonRepresentation(BsonType.ObjectId)]
-        public string? SirketId { get; set; } // Şirket ile ilişki kurmak için
+        public string? SirketId { get; set; } 
+
+        internal void ForEach(Func<object, object> value)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

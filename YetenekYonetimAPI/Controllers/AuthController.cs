@@ -25,16 +25,13 @@ namespace YetenekYonetimAPI.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
-            // 1. Veritabanından kullanıcıyı kullanıcı adına göre bul
             var kullanici = await _kullaniciService.GetByKullaniciAdiAsync(loginDto.Username);
 
-            // 2. Kullanıcı bulunamadıysa veya şifre eşleşmiyorsa hata dön
             if (kullanici == null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, kullanici.Sifre))
             {
                 return Unauthorized("Geçersiz kullanıcı adı veya şifre.");
             }
 
-            // 3. Kullanıcı geçerliyse JWT Token oluşturma
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.SecretKey));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
@@ -53,7 +50,6 @@ namespace YetenekYonetimAPI.Controllers
                 expires: DateTime.Now.AddMinutes(30),
                 signingCredentials: credentials);
 
-            // 4. Token'ı döndür
             return Ok(new
             {
                 token = new JwtSecurityTokenHandler().WriteToken(token),

@@ -9,7 +9,7 @@ services:
 
   backend:
     build:
-      context: ./YetenekYonetimAPI
+      context: .
       dockerfile: Dockerfile
     container_name: yetenekyonetimapi_container
     ports:

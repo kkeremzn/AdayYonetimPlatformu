@@ -22,8 +22,6 @@ namespace YetenekYonetimAPI.Controllers
             _jobPostingService = jobPostingService;
         }
 
-        // --- GET: api/Application ---
-        // Bu metot, her iki rol için de farklı sonuçlar dönecek şekilde güncellendi.
         [HttpGet]
         [Authorize(Roles = "IKDirector, IKUzman, SystemAdmin")]
         public async Task<ActionResult<List<Application>>> Get()
@@ -32,7 +30,6 @@ namespace YetenekYonetimAPI.Controllers
 
             if (kullaniciRolu == "SystemAdmin")
             {
-                // SystemAdmin tüm başvuruları görebilir.
                 return await _applicationService.GetAsync();
             }
 
@@ -43,24 +40,24 @@ namespace YetenekYonetimAPI.Controllers
             {
                 return Unauthorized("Kullanıcı veya şirket bilgisi token'da eksik.");
             }
+            
 
             if (kullaniciRolu == "IKDirector")
             {
-                // IK Direktörü sadece kendi şirketinin başvurularını görebilir.
-                // Bu metot, JobPostingService'ten yararlanarak doğru başvuruları bulmalı.
+                
                 var ilanlar = await _jobPostingService.GetByCompanyIdAsync(sirketId);
                 var ilanIdleri = ilanlar.Select(i => i.Id).ToList();
                 return await _applicationService.GetByJobPostingIdsAsync(ilanIdleri);
+                
             }
             else if (kullaniciRolu == "IKUzman")
             {
-                // IK Uzmanı sadece kendisine atanan ilanlardaki başvuruları görebilir.
                 var uzmanaAitIlanlar = await _jobPostingService.GetByUserIdAsync(kullaniciId);
                 if (uzmanaAitIlanlar == null || uzmanaAitIlanlar.Count == 0)
                 {
                     return new List<Application>();
                 }
-                
+
                 var ilanIdleri = uzmanaAitIlanlar.Select(ilan => ilan.Id).ToList();
                 return await _applicationService.GetByJobPostingIdsAsync(ilanIdleri);
             }
@@ -68,8 +65,7 @@ namespace YetenekYonetimAPI.Controllers
             return Forbid();
         }
 
-        // --- GET: api/Application/{id} ---
-        // Tekil başvuru detayını getirme.
+    
         [HttpGet("{id:length(24)}")]
         [Authorize(Roles = "IKDirector,IKUzman,SystemAdmin")]
         public async Task<ActionResult<Application>> Get(string id)
@@ -102,8 +98,6 @@ namespace YetenekYonetimAPI.Controllers
             return application;
         }
 
-        // --- POST: api/Application ---
-        // Başvuru oluşturma. Bu endpoint anonim erişime açık kalmalı.
         [HttpPost]
         public async Task<IActionResult> Post(Application newApplication)
         {
@@ -124,10 +118,8 @@ namespace YetenekYonetimAPI.Controllers
             return CreatedAtAction(nameof(Get), new { id = newApplication.Id }, newApplication);
         }
 
-        // --- PUT: api/Application/{id} ---
-        // Başvuru güncelleme. Sadece IK Direktörü yetkili.
         [HttpPut("{id:length(24)}")]
-        [Authorize(Roles = "IKDirector,SystemAdmin")]
+        [Authorize(Roles = "SystemAdmin")]
         public async Task<IActionResult> Update(string id, Application updatedApplication)
         {
             var existingApplication = await _applicationService.GetAsync(id);
@@ -143,9 +135,7 @@ namespace YetenekYonetimAPI.Controllers
             }
             
             var kullaniciRolu = User.FindFirst(ClaimTypes.Role)?.Value;
-            var sirketId = User.FindFirst("SirketId")?.Value;
-
-            if (kullaniciRolu != "SystemAdmin" && ilan.CompanyId != sirketId)
+            if (kullaniciRolu != "SystemAdmin")
             {
                 return Forbid();
             }
@@ -155,10 +145,8 @@ namespace YetenekYonetimAPI.Controllers
             return NoContent();
         }
 
-        // --- DELETE: api/Application/{id} ---
-        // Başvuru silme. Direktör veya o başvurunun yapıldığı ilanın sahibi olan uzman yetkili.
         [HttpDelete("{id:length(24)}")]
-        [Authorize(Roles = "IKDirector,IKUzman,SystemAdmin")]
+        [Authorize(Roles = "SystemAdmin")]
         public async Task<IActionResult> Delete(string id)
         {
             var application = await _applicationService.GetAsync(id);
@@ -174,19 +162,13 @@ namespace YetenekYonetimAPI.Controllers
             }
             
             var kullaniciRolu = User.FindFirst(ClaimTypes.Role)?.Value;
-            var sirketId = User.FindFirst("SirketId")?.Value;
-            var kullaniciId = User.FindFirst("userId")?.Value;
 
-            if (kullaniciRolu != "SystemAdmin" && ilan.CompanyId != sirketId)
+            if (kullaniciRolu != "SystemAdmin")
             {
                 return Forbid();
             }
             
-            if (kullaniciRolu == "IKUzman" && ilan.AssignedToUserId != kullaniciId)
-            {
-                return Forbid();
-            }
-
+            
             await _applicationService.RemoveAsync(id);
             return NoContent();
         }
